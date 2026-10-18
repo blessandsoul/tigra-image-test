@@ -117,14 +117,16 @@ RUN --mount=type=cache,target=/root/.npm npm install --no-save --no-audit --no-f
 #    check, so the block checks sharp's "config.libvips" range itself.
 #  - node-addon-api and node-gyp are build tools sharp requires but does not
 #    install. They go to /tmp/sharp-build (exact pins inside sharp's declared
-#    ranges) and never reach the lockfile or the runtime image.
+#    ranges; --ignore-scripts, since neither needs an install script and their
+#    unlocked transitive packages must not run code here) and never reach the
+#    lockfile or the runtime image.
 #  - npm_config_nodedir points node-gyp at this image's own Node headers, so
 #    nothing is downloaded and the addon matches the runtime Node exactly.
 #  - Intermediate build files are dropped; only the .node file stays, also
 #    staged in /opt/sharp-addon for stages that copy it explicitly.
 RUN --mount=type=cache,target=/root/.npm \
     set -eu; \
-    npm install --prefix /tmp/sharp-build --no-save --no-audit --no-fund \
+    npm install --prefix /tmp/sharp-build --no-save --no-audit --no-fund --ignore-scripts \
       node-addon-api@8.9.2 node-gyp@12.4.0; \
     if [ ! -d node_modules/sharp ]; then \
       echo "ERROR: node_modules/sharp is missing. If this app no longer uses sharp, delete this build step and the libvips stage." >&2; \
